@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f6f1">
+  <title>Mirrorkin — Your tiny</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f6f1; --ink: #20241f; --muted: #646a61; --line: #dedfd5; --white: #fffefa;
+      --green: #c9f36b; --green-ink: #4f6b2a; --purple: #7664e9; --red: #a94438; --panel: #efeee7;
+      --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    button, input, select { font: inherit; color: inherit; }
+    .wrap { width: min(1120px, calc(100% - 40px)); margin-inline: auto; }
+    [hidden] { display: none !important; }
+    :focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; }
+
+    .topbar { height: 72px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -.04em; text-decoration: none; color: inherit; }
+    .who { display: flex; align-items: center; gap: 14px; color: var(--muted); font-size: 13px; }
+    .pill { padding: 5px 10px; border-radius: 99px; background: var(--panel); font-size: 11px; font-weight: 650; color: var(--ink); }
+    .link-btn { border: 0; background: none; padding: 0; color: var(--muted); text-decoration: underline; cursor: pointer; font-size: 13px; }
+    .button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 999px;
+              background: var(--ink); color: #fff; padding: 12px 18px; font-size: 13px; font-weight: 650; cursor: pointer; }
+    .button.secondary { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+    .button:disabled { opacity: .6; cursor: wait; }
+    h1, h2, h3 { margin: 0; text-wrap: balance; }
+    h1 { font-family: var(--serif); font-weight: 500; letter-spacing: -.05em; font-size: clamp(34px, 4vw, 48px); }
+    h2 { font-family: var(--serif); font-weight: 500; letter-spacing: -.035em; font-size: 26px; }
+    .kicker { margin: 0 0 8px; color: #71766b; font-size: 10px; font-weight: 750; letter-spacing: .15em; text-transform: uppercase; }
+    .muted { color: var(--muted); font-size: 13px; line-height: 1.7; }
+    .msg { min-height: 20px; font-size: 12px; color: var(--green-ink); }
+    .msg.error { color: var(--red); }
+
+    /* sign in */
+    .auth { display: grid; place-items: center; padding-block: 80px; }
+    .auth-card { width: min(420px, 100%); background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 32px; display: grid; gap: 14px; }
+    .tabs { display: flex; gap: 6px; background: var(--panel); border-radius: 99px; padding: 4px; }
+    .tabs button { flex: 1; border: 0; border-radius: 99px; padding: 9px; background: transparent; cursor: pointer; font-size: 13px; font-weight: 650; color: var(--muted); }
+    .tabs button[aria-selected="true"] { background: var(--white); color: var(--ink); box-shadow: 0 1px 4px rgb(0 0 0 / 8%); }
+    label.field { display: grid; gap: 6px; font-size: 12px; font-weight: 650; }
+    .field input, .field select { padding: 11px 13px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); }
+
+    /* panel */
+    .panel { display: grid; grid-template-columns: 340px 1fr; gap: 28px; padding-block: 36px 70px; align-items: start; }
+    .panel > * { min-width: 0; }
+    .card { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 24px; }
+    .stack { display: grid; gap: 22px; }
+    .stage { position: relative; height: 330px; border-radius: 10px; display: grid; place-items: center; overflow: hidden;
+             background: radial-gradient(ellipse at 50% 55%, #f9ebd5 0, #f5e8d0 35%, transparent 70%), linear-gradient(140deg, #eeefdd, #f5e9dd 55%, #e8e9dd); }
+    .stage img { max-height: 300px; max-width: 100%; filter: drop-shadow(0 14px 12px rgb(77 59 43 / 17%)); }
+    .stage .empty { text-align: center; color: var(--muted); font-size: 13px; padding: 20px; }
+    .status { position: absolute; left: 12px; bottom: 12px; right: 12px; padding: 9px 12px; border-radius: 8px; background: rgb(255 254 250 / 90%); font-size: 12px; }
+    .status b { font-weight: 700; }
+    .upload { display: grid; gap: 10px; }
+    .upload input[type=file] { font-size: 12px; }
+    .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+    .switches { display: grid; gap: 2px; }
+    .switch-row { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+    .switch-row:last-child { border-bottom: 0; }
+    .switch-row h3 { font-size: 14px; letter-spacing: -.01em; }
+    .switch-row p { margin: 3px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .toggle { position: relative; width: 44px; height: 26px; border-radius: 99px; border: 0; background: #d3d4ca; cursor: pointer; transition: background .2s; }
+    .toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 3px rgb(0 0 0 / 20%); }
+    .toggle[aria-checked="true"] { background: var(--ink); }
+    .toggle[aria-checked="true"]::after { transform: translateX(18px); background: var(--green); }
+    .num { width: 74px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--paper); text-align: right; font-variant-numeric: tabular-nums; }
+
+    .skill-groups { display: grid; gap: 18px; }
+    .skill-group h3 { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #71766b; margin-bottom: 10px; }
+    .skills { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+    .skill { text-align: left; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); padding: 13px 14px; cursor: pointer; display: grid; gap: 4px; }
+    .skill b { font-size: 13px; display: flex; justify-content: space-between; gap: 8px; }
+    .skill span { color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .skill[aria-pressed="true"] { border-color: var(--ink); background: #f1f7e2; }
+    .skill[aria-pressed="true"] b::after { content: "Added"; font-size: 10px; font-weight: 700; color: var(--green-ink); letter-spacing: .06em; text-transform: uppercase; }
+
+    .note { padding: 14px 16px; border-radius: 10px; background: #e9eadd; color: #4d5447; font-size: 12px; line-height: 1.7; }
+
+    @media (max-width: 860px) {
+      .panel { grid-template-columns: 1fr; }
+      .who .email { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar wrap">
+    <a class="brand" href="/">
+      <svg viewBox="0 0 36 36" width="30" height="30" fill="none" aria-hidden="true">
+        <path d="M18 3.5 21.7 13l9.8-3.1-5.8 8.5 8.1 6.2-10.2-.3-2.1 10-3.5-9.6-9.9 3.2 5.9-8.5-8.2-6.2 10.2.3L18 3.5Z" fill="#C9F36B" stroke="#20241F" stroke-width="1.2" stroke-linejoin="round"/>
+        <circle cx="18.2" cy="18" r="3.1" fill="#20241F"/>
+      </svg>
+      <span>mirrorkin</span>
+    </a>
+    <div class="who" id="who" hidden>
+      <span class="email" id="who-email"></span>
+      <span class="pill" id="who-plan"></span>
+      <button class="link-btn" id="logout" type="button">Log out</button>
+    </div>
+  </header>
+
+  <!-- Sign up / log in -->
+  <main class="auth wrap" id="auth-view">
+    <form class="auth-card" id="auth-form">
+      <div>
+        <p class="kicker">Your own Mirrorkin</p>
+        <h1 id="auth-title">Create your tiny</h1>
+      </div>
+      <div class="tabs" role="tablist">
+        <button type="button" role="tab" aria-selected="true" id="tab-signup">Sign up</button>
+        <button type="button" role="tab" aria-selected="false" id="tab-login">Log in</button>
+      </div>
+      <label class="field" for="email">Email<input id="email" type="email" autocomplete="email" required maxlength="200"></label>
+      <label class="field" for="password">Password<input id="password" type="password" autocomplete="new-password" required minlength="8"></label>
+      <button class="button" type="submit" id="auth-submit">Create account</button>
+      <p class="msg" id="auth-msg" role="status"></p>
+    </form>
+  </main>
+
+  <!-- Control panel -->
+  <main class="panel wrap" id="panel-view" hidden>
+    <aside class="stack">
+      <section class="card stack">
+        <div>
+          <p class="kicker">Your tiny</p>
+          <h2 id="tiny-name">My Mirrorkin</h2>
+        </div>
+        <div class="stage">
+          <img id="avatar" alt="Your tiny, built in 3D from your look" hidden>
+          <div class="empty" id="avatar-empty">Upload a photo and we'll build a realistic little you in 3D.</div>
+          <div class="status" id="avatar-status" hidden></div>
+        </div>
+        <div class="upload">
+          <label class="field" for="body">Body
+            <select id="body"><option value="feminine">Feminine</option><option value="masculine">Masculine</option></select>
+          </label>
+          <label class="field" for="photo">A clear photo of you, facing the camera
+            <input id="photo" type="file" accept="image/*">
+          </label>
+          <div class="row">
+            <button class="button" type="button" id="upload">Build my tiny</button>
+            <button class="button secondary" type="button" id="rebuild">Rebuild</button>
+          </div>
+          <p class="muted">We read your photo to pick hair, skin tone, glasses and clothes, then build your tiny in Blender. The photo itself isn't stored.</p>
+          <p class="msg" id="photo-msg" role="status"></p>
+        </div>
+        <label class="field" for="name">Name your tiny
+          <input id="name" maxlength="40">
+        </label>
+      </section>
+      <div class="note">Money stays yours: your tiny never spends, deposits or signs anything sworn without asking you first, whatever you switch on.</div>
+    </aside>
+
+    <div class="stack">
+      <section class="card">
+        <p class="kicker">What it does on its own</p>
+        <h2>Switches</h2>
+        <div class="switches" id="switches"></div>
+        <p class="msg" id="switch-msg" role="status"></p>
+      </section>
+      <section class="card">
+        <p class="kicker">Add what you want it to be good at</p>
+        <h2>Skills</h2>
+        <p class="muted" style="margin: 6px 0 18px">Tap to add or remove. Your tiny focuses its time on the skills you pick.</p>
+        <div class="skill-groups" id="skills"></div>
+        <p class="msg" id="skill-msg" role="status"></p>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let token = null, catalogue = null, tiny = null, signup = true, frameTimer = null, pollTimer = null;
+    try { token = localStorage.getItem("mirrorkin-token"); } catch (e) {}
+
+    async function api(method, path, body) {
+      const res = await fetch(path, {
+        method, headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}) },
+        body: body ? JSON.stringify(body) : undefined });
+      let data = {};
+      try { data = await res.json(); } catch (e) {}
+      if (res.status === 401) { setToken(null); show("auth"); }
+      if (!res.ok) throw new Error(data.error || "Something went wrong. Please try again.");
+      return data;
+    }
+    function setToken(t) { token = t; try { t ? localStorage.setItem("mirrorkin-token", t) : localStorage.removeItem("mirrorkin-token"); } catch (e) {} }
+    function say(id, text, error) { $(id).textContent = text || ""; $(id).classList.toggle("error", !!error); }
+    function show(view) { $("auth-view").hidden = view !== "auth"; $("panel-view").hidden = view !== "panel"; $("who").hidden = view !== "panel"; }
+
+    // ---- sign up / log in ----
+    function setMode(isSignup) {
+      signup = isSignup;
+      $("tab-signup").setAttribute("aria-selected", isSignup); $("tab-login").setAttribute("aria-selected", !isSignup);
+      $("auth-title").textContent = isSignup ? "Create your tiny" : "Welcome back";
+      $("auth-submit").textContent = isSignup ? "Create account" : "Log in";
+      $("password").autocomplete = isSignup ? "new-password" : "current-password";
+      say("auth-msg", "");
+    }
+    $("tab-signup").onclick = () => setMode(true);
+    $("tab-login").onclick = () => setMode(false);
+    $("auth-form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      $("auth-submit").disabled = true; say("auth-msg", signup ? "Creating your account…" : "Logging in…");
+      try {
+        const r = await api("POST", signup ? "/signup" : "/login", { email: $("email").value, password: $("password").value });
+        setToken(r.token); await openPanel();
+      } catch (err) { say("auth-msg", err.message, true); }
+      finally { $("auth-submit").disabled = false; }
+    });
+    $("logout").onclick = async () => { try { await api("POST", "/logout", {}); } catch (e) {} setToken(null); show("auth"); };
+
+    // ---- panel ----
+    async function openPanel() {
+      const [me, cat, t] = await Promise.all([api("GET", "/me"), catalogue ? catalogue : api("GET", "/tiny/catalogue"), api("GET", "/tiny")]);
+      catalogue = cat; $("who-email").textContent = me.email; $("who-plan").textContent = me.plan_name + " plan";
+      show("panel"); render(t);
+    }
+
+    function render(t) {
+      tiny = t;
+      $("tiny-name").textContent = t.name; if (document.activeElement !== $("name")) $("name").value = t.name;
+      $("body").value = t.look.body || "feminine";
+      renderAvatar(); renderSwitches(); renderSkills();
+      clearTimeout(pollTimer);
+      if (t.avatar_status === "queued" || t.avatar_status === "building") pollTimer = setTimeout(refresh, 3000);
+    }
+    async function refresh() { try { render(await api("GET", "/tiny")); } catch (e) {} }
+
+    function renderAvatar() {
+      const t = tiny, img = $("avatar"), status = $("avatar-status");
+      clearInterval(frameTimer);
+      if (t.avatar_url) {
+        img.hidden = false; $("avatar-empty").hidden = true;
+        const frames = [...Array(20).fill("idle.png"), ...Array.from({ length: 8 }, (_, i) => `walk_${i}.png`),
+                        ...Array(28).fill("idle.png"), "blink.png", "blink.png"];
+        let f = 0; img.src = t.avatar_url + "idle.png?" + Date.now();
+        if (!matchMedia("(prefers-reduced-motion: reduce)").matches)
+          frameTimer = setInterval(() => { f = (f + 1) % frames.length; img.src = t.avatar_url + frames[f]; }, 110);
+      } else { img.hidden = true; $("avatar-empty").hidden = false; }
+      const words = {
+        queued: `<b>In the queue</b>${t.queue_position ? ` · ${t.queue_position} ahead of you` : ""}. Building takes about a minute.`,
+        building: "<b>Building your tiny in 3D…</b> about a minute.",
+        failed: `<b>That build didn't work.</b> ${t.avatar_error || ""} Try Rebuild.`,
+      };
+      status.hidden = !words[t.avatar_status]; status.innerHTML = words[t.avatar_status] || "";
+    }
+
+    function renderSwitches() {
+      const box = $("switches"); box.replaceChildren();
+      for (const [key, f] of Object.entries(catalogue.features)) {
+        const row = document.createElement("div"); row.className = "switch-row";
+        row.innerHTML = `<div><h3></h3><p></p></div><button class="toggle" role="switch" type="button"></button>`;
+        row.querySelector("h3").textContent = f.name; row.querySelector("p").textContent = f.about;
+        const btn = row.querySelector("button"); btn.id = "sw-" + key;
+        btn.setAttribute("aria-label", f.name); btn.setAttribute("aria-checked", !!tiny.settings[key]);
+        btn.onclick = () => change({ [key]: !tiny.settings[key] });
+        box.append(row);
+      }
+      for (const [key, l] of Object.entries(catalogue.limits)) {
+        const row = document.createElement("div"); row.className = "switch-row";
+        row.innerHTML = `<div><h3></h3><p></p></div>`;
+        row.querySelector("h3").textContent = l.name; row.querySelector("p").textContent = l.about;
+        if (l.max === l.min) {
+          const v = document.createElement("span"); v.className = "pill"; v.textContent = key.includes("usd") ? "$" + l.min : l.min; row.append(v);
+        } else {
+          const input = document.createElement("input"); input.type = "number"; input.className = "num"; input.id = "lim-" + key;
+          input.min = l.min; input.max = l.max; input.value = tiny.settings[key]; input.setAttribute("aria-label", l.name);
+          input.onchange = () => change({ [key]: Number(input.value) }); row.append(input);
+        }
+        box.append(row);
+      }
+    }
+    async function change(changes) {
+      say("switch-msg", "Saving…");
+      try { render(await api("POST", "/tiny/settings", { changes })); say("switch-msg", "Saved."); }
+      catch (e) { say("switch-msg", e.message, true); }
+    }
+    $("name").addEventListener("change", () => { if ($("name").value.trim()) change({ name: $("name").value.trim() }); });
+
+    function renderSkills() {
+      const box = $("skills"); box.replaceChildren();
+      const groups = {};
+      for (const s of catalogue.skills) (groups[s.category] ||= []).push(s);
+      for (const [cat, list] of Object.entries(groups)) {
+        const g = document.createElement("div"); g.className = "skill-group";
+        const h = document.createElement("h3"); h.textContent = cat; g.append(h);
+        const grid = document.createElement("div"); grid.className = "skills";
+        for (const s of list) {
+          const b = document.createElement("button"); b.type = "button"; b.className = "skill"; b.id = "skill-" + s.id;
+          b.setAttribute("aria-pressed", tiny.skills.includes(s.id));
+          const name = document.createElement("b"); name.textContent = s.name;
+          const about = document.createElement("span"); about.textContent = s.about;
+          b.append(name, about);
+          b.onclick = async () => {
+            const next = tiny.skills.includes(s.id) ? tiny.skills.filter((x) => x !== s.id) : [...tiny.skills, s.id];
+            say("skill-msg", "Saving…");
+            try { render(await api("POST", "/tiny/skills", { skills: next })); say("skill-msg", "Saved."); }
+            catch (e) { say("skill-msg", e.message, true); }
+          };
+          grid.append(b);
+        }
+        g.append(grid); box.append(g);
+      }
+    }
+
+    // ---- photo → look → 3D build ----
+    async function shrink(file) {
+      const url = URL.createObjectURL(file);
+      try {
+        const img = await new Promise((ok, bad) => { const i = new Image(); i.onload = () => ok(i); i.onerror = bad; i.src = url; });
+        const scale = Math.min(1, 768 / Math.max(img.width, img.height));
+        const c = document.createElement("canvas"); c.width = Math.round(img.width * scale); c.height = Math.round(img.height * scale);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        return c.toDataURL("image/jpeg", 0.85).split(",")[1];
+      } finally { URL.revokeObjectURL(url); }
+    }
+    $("upload").onclick = async () => {
+      const file = $("photo").files[0];
+      if (!file) { say("photo-msg", "Choose a photo first.", true); return; }
+      $("upload").disabled = true; say("photo-msg", "Reading your photo… (about 15 seconds)");
+      try {
+        const image = await shrink(file);
+        render(await api("POST", "/tiny/photo", { image, body: $("body").value }));
+        say("photo-msg", "Got it! Your tiny is being built.");
+      } catch (e) { say("photo-msg", e.message || "Couldn't use that photo. Try a JPG or PNG.", true); }
+      finally { $("upload").disabled = false; }
+    };
+    $("rebuild").onclick = async () => {
+      say("photo-msg", "Rebuilding…");
+      try { render(await api("POST", "/tiny/look", { look: { body: $("body").value } })); say("photo-msg", "Queued."); }
+      catch (e) { say("photo-msg", e.message, true); }
+    };
+
+    if (token) openPanel().catch(() => show("auth")); else show("auth");
+  </script>
+</body>
+</html>

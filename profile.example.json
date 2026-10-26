@@ -1,0 +1,33 @@
+{
+  "name": "Your first name",
+  "country": "USA",
+  "state": "Your state (unclaimed property and settlements are often state-specific)",
+  "city": "Your city",
+  "languages": [
+    "English"
+  ],
+  "skills": [
+    "graphic design",
+    "writing",
+    "basic Python"
+  ],
+  "interests": [
+    "AI",
+    "fashion",
+    "music"
+  ],
+  "assets": [
+    "laptop",
+    "phone camera",
+    "about 10 free hours a week"
+  ],
+  "accounts_i_already_have": [
+    "GitHub",
+    "Instagram"
+  ],
+  "goals": "Earn some extra income online and find money I'm owed.",
+  "avoid": "Anything that needs me on calls during work hours.",
+  "allow_trading": true,
+  "crypto_interest": true,
+  "max_upfront_usd": 0
+}

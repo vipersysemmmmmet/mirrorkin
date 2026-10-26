@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f6f1">
+  <meta name="description" content="See Mirrorkin's planned 30-day passes and a transparent estimate of AI usage costs.">
+  <title>Pricing — Mirrorkin</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f6f1;
+      --ink: #20241f;
+      --muted: #646a61;
+      --line: #dedfd5;
+      --green: #c9f36b;
+      --purple: #7664e9;
+      --white: #fffefa;
+      --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    a { color: inherit; text-decoration: none; }
+    .wrap { width: min(1060px, calc(100% - 48px)); margin-inline: auto; }
+    .topbar { height: 78px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgb(32 36 31 / 10%); }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; letter-spacing: -.045em; white-space: nowrap; }
+    .brand svg { width: 31px; height: 31px; }
+    .back-link { color: #555b53; font-size: 13px; }
+    .back-link:hover { color: var(--ink); }
+    .intro { max-width: 720px; padding-block: 76px 43px; text-align: center; margin-inline: auto; }
+    .eyebrow { margin: 0 0 17px; color: #657354; font-size: 10px; font-weight: 750; letter-spacing: .15em; text-transform: uppercase; }
+    h1, h2 { font-family: var(--serif); font-weight: 500; letter-spacing: -.055em; }
+    h1 { margin: 0; font-size: clamp(48px, 7vw, 75px); line-height: 1; }
+    .intro-copy { max-width: 500px; margin: 19px auto 0; color: var(--muted); font-size: 14px; line-height: 1.8; }
+    .plans { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: stretch; gap: 15px; padding-bottom: 82px; }
+    .plan { position: relative; display: flex; flex-direction: column; padding: 26px 24px 23px; border: 1px solid var(--line); border-radius: 8px; background: var(--white); }
+    .plan.featured { border: 1.5px solid #8c7be6; box-shadow: 0 12px 32px rgb(69 56 140 / 8%); }
+    .badge { position: absolute; top: -12px; right: 17px; padding: 5px 9px; border-radius: 99px; background: #eeeafd; color: #6253c2; font-size: 9px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
+    .plan-name { margin: 0; font-size: 14px; font-weight: 700; }
+    .price { display: flex; align-items: baseline; gap: 6px; margin-top: 18px; }
+    .price strong { font-family: var(--serif); font-size: 45px; font-weight: 500; letter-spacing: -.06em; }
+    .price span { color: var(--muted); font-size: 11px; }
+    .plan-description { min-height: 42px; margin: 7px 0 20px; color: var(--muted); font-size: 12px; line-height: 1.7; }
+    .plan ul { display: grid; gap: 12px; margin: 0 0 24px; padding: 17px 0 0; border-top: 1px solid #edede7; list-style: none; }
+    .plan li { display: flex; gap: 9px; color: #4f554b; font-size: 11px; line-height: 1.55; }
+    .plan li::before { color: #738b51; content: "✓"; font-weight: 800; }
+    .plan-cta { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: auto; padding: 12px 14px; border: 1px solid #d9dbd0; border-radius: 99px; font-size: 11px; font-weight: 700; transition: background .2s, transform .2s; }
+    .plan-cta:hover { transform: translateY(-1px); background: #f0efe9; }
+    .featured .plan-cta { border-color: var(--ink); background: var(--ink); color: white; }
+    .featured .plan-cta:hover { background: #353b31; }
+    .plan-note { margin: 16px 0 0; color: #777b71; font-size: 10px; line-height: 1.65; text-align: center; }
+
+    .estimate { margin-bottom: 86px; padding: 39px 42px 33px; border-radius: 8px; background: #e9eadd; }
+    .estimate-heading { display: grid; grid-template-columns: 1fr .8fr; align-items: end; gap: 35px; margin-bottom: 25px; }
+    .estimate .eyebrow { margin-bottom: 12px; }
+    h2 { margin: 0; font-size: clamp(32px, 4.4vw, 46px); line-height: 1.06; }
+    .estimate-copy { margin: 0; color: #596052; font-size: 12px; line-height: 1.8; }
+    .estimate-copy strong { color: var(--ink); }
+    .table-wrap { overflow-x: auto; border: 1px solid rgb(76 84 62 / 14%); border-radius: 6px; background: rgb(255 254 250 / 75%); }
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th, td { padding: 13px 15px; border-bottom: 1px solid rgb(76 84 62 / 12%); font-size: 11px; }
+    tr:last-child td { border-bottom: 0; }
+    th { color: #666d5e; font-size: 9px; font-weight: 750; letter-spacing: .09em; text-transform: uppercase; }
+    td:last-child, th:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+    td strong { font-size: 13px; }
+    .assumptions { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 19px; color: #5b6254; font-size: 10px; line-height: 1.75; }
+    .assumptions p { margin: 0; }
+    .assumptions a { text-decoration: underline; text-underline-offset: 2px; }
+    .launch-note { margin-top: 25px; padding: 14px 16px; border-left: 3px solid #9d8be9; background: rgb(255 254 250 / 67%); color: #4f554b; font-size: 11px; line-height: 1.75; }
+    .launch-note strong { color: var(--ink); }
+    .footer { display: flex; justify-content: space-between; gap: 16px; padding-block: 21px; border-top: 1px solid var(--line); color: #777b71; font-size: 10px; }
+
+    @media (max-width: 920px) {
+      .plans { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 620px; margin-inline: auto; gap: 17px; }
+      .plan-description { min-height: 0; }
+      .estimate-heading { grid-template-columns: 1fr; gap: 14px; }
+      .estimate { padding: 30px 24px 25px; }
+      .estimate-copy { max-width: 500px; }
+    }
+    @media (max-width: 560px) {
+      .plans { grid-template-columns: 1fr; max-width: 460px; }
+    }
+    @media (max-width: 500px) {
+      .wrap { width: calc(100% - 36px); }
+      .topbar { height: 68px; }
+      .brand { gap: 6px; font-size: 14px; }
+      .brand svg { width: 27px; height: 27px; }
+      .back-link { font-size: 11px; }
+      .intro { padding-block: 58px 36px; }
+      .intro-copy { font-size: 13px; }
+      .plans { padding-bottom: 64px; }
+      .assumptions { grid-template-columns: 1fr; }
+      th, td { padding: 11px 9px; }
+      .footer { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar wrap">
+    <a class="brand" href="/" aria-label="Mirrorkin home">
+      <svg viewBox="0 0 36 36" fill="none" aria-hidden="true">
+        <path d="M18 3.5 21.7 13l9.8-3.1-5.8 8.5 8.1 6.2-10.2-.3-2.1 10-3.5-9.6-9.9 3.2 5.9-8.5-8.2-6.2 10.2.3L18 3.5Z" fill="#C9F36B" stroke="#20241F" stroke-width="1.2" stroke-linejoin="round"/>
+        <circle cx="18.2" cy="18" r="3.1" fill="#20241F"/>
+      </svg>
+      <span>mirrorkin</span>
+    </a>
+    <a class="back-link" href="/">← Back to home</a>
+  </header>
+
+  <main class="wrap">
+    <section class="intro">
+      <p class="eyebrow">Simple 30-day passes</p>
+      <h1>More you, on your terms.</h1>
+      <p class="intro-copy">Start with a 2-day preview, then choose a 30-day plan when you're ready for more room to chat and explore. Paid access isn't open yet.</p>
+    </section>
+
+    <section class="plans" aria-label="Plans">
+      <article class="plan">
+        <p class="plan-name">Starter</p>
+        <div class="price"><strong>$0</strong><span>up to 2 days</span></div>
+        <p class="plan-description">A short preview of having a tiny of your own.</p>
+        <ul>
+          <li>Up to 10 chats per day</li>
+          <li>1 Scout run per week</li>
+          <li>Personal memory and your own tiny</li>
+        </ul>
+        <a class="plan-cta" href="/#join">Get early access <span aria-hidden="true">↗</span></a>
+      </article>
+
+      <article class="plan featured">
+        <span class="badge">Most popular</span>
+        <p class="plan-name">Plus</p>
+        <div class="price"><strong>$30</strong><span>USDC / 30 days</span></div>
+        <p class="plan-description">For your everyday companion and regular research.</p>
+        <ul>
+          <li>Up to 20 chats per day</li>
+          <li>7 Scout runs per week</li>
+          <li>Personal memory and your own tiny</li>
+        </ul>
+        <a class="plan-cta" href="/#join">Join the waitlist <span aria-hidden="true">↗</span></a>
+      </article>
+
+      <article class="plan">
+        <p class="plan-name">Pro</p>
+        <div class="price"><strong>$100</strong><span>USDC / 30 days</span></div>
+        <p class="plan-description">For people who want more room to chat and run Scout.</p>
+        <ul>
+          <li>Up to 60 chats per day</li>
+          <li>30 Scout runs per week</li>
+          <li>Personal memory and your own tiny</li>
+        </ul>
+        <a class="plan-cta" href="/#join">Join the waitlist <span aria-hidden="true">↗</span></a>
+      </article>
+      <article class="plan">
+        <p class="plan-name">Pro Max</p>
+        <div class="price"><strong>$200</strong><span>USDC / 30 days</span></div>
+        <p class="plan-description">For power users who want the most room to chat and explore.</p>
+        <ul>
+          <li>Up to 120 chats per day</li>
+          <li>60 Scout runs per week</li>
+          <li>Personal memory and your own tiny</li>
+        </ul>
+        <a class="plan-cta" href="/#join">Join the waitlist <span aria-hidden="true">↗</span></a>
+      </article>
+    </section>
+
+    <section class="estimate" aria-labelledby="estimate-title">
+      <div class="estimate-heading">
+        <div>
+          <p class="eyebrow">A transparent estimate</p>
+          <h2 id="estimate-title">What AI usage costs to run</h2>
+        </div>
+        <p class="estimate-copy">At current Claude Opus 5.5 list rates, one typical reply is estimated at <strong>about $0.034</strong> in model API usage. That's roughly $3.40 for 100 replies, before hosting or other services.</p>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Example usage</th><th scope="col">Estimated input / output</th><th scope="col">Estimated AI credits</th></tr></thead>
+          <tbody>
+            <tr><td>100 replies</td><td>500k / 70k tokens</td><td><strong>$3.40</strong></td></tr>
+            <tr><td>600 replies (Plus daily cap × 30 days)</td><td>3M / 420k tokens</td><td><strong>$20.40</strong></td></tr>
+            <tr><td>1,800 replies (Pro daily cap × 30 days)</td><td>9M / 1.26M tokens</td><td><strong>$61.20</strong></td></tr>
+            <tr><td>3,600 replies (Pro Max daily cap × 30 days)</td><td>18M / 2.52M tokens</td><td><strong>$122.40</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="assumptions">
+        <p>Estimate assumes 5,000 input tokens and 700 output tokens per reply, at $4 / million input tokens and $20 / million output tokens. Actual usage varies with conversation length, screenshots, and web searches. Starter's 2-day maximum is 20 replies, or about $0.68 at this estimate.</p>
+        <p>Model rates checked <time datetime="2026-10-26">October 26, 2026</time> against <a href="https://platform.claude.com/docs/en/about-claude/pricing">Anthropic's API pricing</a>. Hosting, storage, payments, Scout research and taxes are not included.</p>
+      </div>
+      <p class="launch-note"><strong>Important:</strong> These are usage estimates, not included prepaid credit or a guaranteed bill. Paid chat caps are set below the plan prices using these assumptions, but real prompts, image inputs, and tool calls can cost more. Before paid public launch, Mirrorkin needs token-level usage tracking and a hard per-account AI spend cap; we’ll confirm final limits and prices before checkout opens.</p>
+    </section>
+  </main>
+
+  <footer class="footer wrap">
+    <span>© Mirrorkin</span>
+    <span>Plan prices and limits are planned; paid access is not open yet.</span>
+  </footer>
+</body>
+</html>

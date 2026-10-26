@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f6f1">
+  <meta name="description" content="Mirrorkin is a little AI you, learning your world and taking on digital tasks within the boundaries you set. Join the early-access waitlist.">
+  <title>Mirrorkin — another you, for what's next</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f7f6f1;
+      --ink: #20241f;
+      --muted: #646a61;
+      --line: #dedfd5;
+      --green: #c9f36b;
+      --purple: #7664e9;
+      --peach: #f1a68a;
+      --white: #fffefa;
+      --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--paper); color: var(--ink); }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    .wrap { width: min(1160px, calc(100% - 64px)); margin-inline: auto; }
+
+    .topbar {
+      height: 82px; display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid rgb(32 36 31 / 10%);
+    }
+    .brand { display: inline-flex; align-items: center; gap: 11px; font-weight: 700; letter-spacing: -.045em; white-space: nowrap; }
+    .brand-mark { width: 34px; height: 34px; display: grid; place-items: center; flex: none; }
+    .brand-name { font-size: 17px; }
+    .nav { display: flex; align-items: center; gap: 34px; color: #555b53; font-size: 13px; }
+    .nav a:not(.nav-cta):hover { color: var(--ink); }
+    .nav-cta, .button {
+      display: inline-flex; justify-content: center; align-items: center; gap: 10px;
+      border: 0; border-radius: 999px; background: var(--ink); color: white;
+      padding: 13px 19px; font-size: 13px; font-weight: 650; transition: transform .2s, background .2s;
+    }
+    .nav-cta:hover, .button:hover { transform: translateY(-2px); background: #353b31; }
+    .arrow { font-size: 16px; line-height: 1; }
+
+    .hero {
+      min-height: 660px; display: grid; grid-template-columns: 1fr .93fr; align-items: center;
+      gap: 56px; padding-block: 76px 88px;
+    }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 9px; margin: 0 0 23px;
+      color: #58624e; font-size: 11px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase;
+    }
+    .eyebrow-dot { width: 8px; height: 8px; border-radius: 50%; background: #7ead3c; box-shadow: 0 0 0 4px #e5efcf; }
+    h1 { max-width: 620px; margin: 0; font-family: var(--serif); font-size: clamp(55px, 6.2vw, 82px); font-weight: 500; letter-spacing: -.068em; line-height: .99; }
+    h1 em { color: var(--purple); font-weight: 500; }
+    .hero-copy { max-width: 460px; margin: 25px 0 30px; color: var(--muted); font-size: 16px; line-height: 1.8; }
+    .hero-actions { display: flex; align-items: center; gap: 16px; }
+    .hero-actions .button { padding: 15px 21px; }
+    .no-card { color: #74796f; font-size: 12px; }
+    .proof { display: flex; align-items: center; gap: 11px; margin-top: 38px; color: #60665c; font-size: 12px; }
+    .proof-stars { display: inline-flex; gap: 2px; color: #8c7e47; font-size: 14px; }
+
+    .scene {
+      position: relative; min-height: 468px; overflow: hidden; display: grid; place-items: center;
+      border: 1px solid #e6e4d8; border-radius: 9px; background:
+        radial-gradient(ellipse at 51% 48%, #f9ebd5 0, #f5e8d0 34%, transparent 69%),
+        linear-gradient(140deg, #eeefdd, #f5e9dd 54%, #e8e9dd);
+    }
+    .scene::before {
+      position: absolute; inset: 0; content: ""; opacity: .2;
+      background-image: linear-gradient(rgb(68 70 54 / 14%) 1px, transparent 1px), linear-gradient(90deg, rgb(68 70 54 / 14%) 1px, transparent 1px);
+      background-size: 31px 31px; mask-image: linear-gradient(transparent, #000 22%, #000 80%, transparent);
+    }
+    .scene-label { position: absolute; top: 20px; left: 22px; z-index: 2; color: #77796e; font-size: 10px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; }
+    .orbit { position: absolute; width: 335px; height: 335px; border: 1px solid rgb(95 91 67 / 15%); border-radius: 50%; }
+    .orbit::before, .orbit::after { position: absolute; inset: 27px; border: 1px solid rgb(95 91 67 / 13%); border-radius: 50%; content: ""; }
+    .orbit::after { inset: -25px; }
+    .spark { position: absolute; z-index: 1; display: grid; place-items: center; border: 1px solid rgb(51 52 45 / 9%); border-radius: 50%; box-shadow: 0 8px 20px rgb(44 41 28 / 8%); }
+    .spark-one { top: 103px; left: 62px; width: 44px; height: 44px; background: var(--green); font-size: 20px; }
+    .spark-two { top: 164px; right: 57px; width: 36px; height: 36px; background: #fff; color: var(--purple); font-size: 19px; }
+    .spark-three { bottom: 95px; left: 91px; width: 30px; height: 30px; background: #f6cbb9; font-size: 14px; }
+    .avatar-animation {
+      position: relative; z-index: 2; width: min(76%, 280px); height: min(78%, 355px);
+      object-fit: contain; filter: drop-shadow(0 18px 16px rgb(77 59 43 / 17%));
+    }
+    .caption {
+      position: absolute; right: 18px; bottom: 20px; left: 18px; z-index: 6; display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 16px; border: 1px solid rgb(255 255 255 / 80%); border-radius: 7px; background: rgb(255 254 250 / 89%); box-shadow: 0 8px 25px rgb(66 54 37 / 7%); backdrop-filter: blur(14px);
+    }
+    .caption-title { font-size: 12px; font-weight: 700; }
+    .caption-sub { margin-top: 3px; color: #75776f; font-size: 10px; }
+    .caption-live { display: flex; align-items: center; gap: 7px; color: #59763e; font-size: 10px; font-weight: 650; }
+    .caption-live::before { width: 7px; height: 7px; border-radius: 50%; background: #8db45d; content: ""; }
+
+    .ticker { overflow: hidden; border-block: 1px solid var(--line); background: #efeee7; }
+    .ticker-inner { min-height: 62px; display: flex; align-items: center; justify-content: center; gap: 31px; color: #5d6257; font-size: 11px; font-weight: 650; letter-spacing: .055em; }
+    .ticker-star { color: #9b8b55; font-size: 17px; }
+    section.content { padding-block: 113px; }
+    .section-head { display: grid; grid-template-columns: .75fr 1fr; align-items: end; gap: 56px; margin-bottom: 50px; }
+    .section-kicker { margin: 0 0 14px; color: #71766b; font-size: 10px; font-weight: 750; letter-spacing: .15em; text-transform: uppercase; }
+    h2 { max-width: 550px; margin: 0; font-family: var(--serif); font-size: clamp(39px, 4.5vw, 58px); font-weight: 500; letter-spacing: -.055em; line-height: 1.05; }
+    .section-copy { max-width: 430px; margin: 0 0 5px; color: var(--muted); font-size: 14px; line-height: 1.85; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); }
+    .step { min-height: 223px; padding: 24px 29px 20px 0; }
+    .step + .step { padding-left: 29px; border-left: 1px solid var(--line); }
+    .step-index { color: #7a806e; font-family: var(--serif); font-size: 16px; }
+    .step h3 { margin: 34px 0 10px; font-size: 16px; letter-spacing: -.02em; }
+    .step p { max-width: 275px; margin: 0; color: var(--muted); font-size: 13px; line-height: 1.8; }
+
+    .guardrails {
+      position: relative; overflow: hidden; display: grid; grid-template-columns: 1fr .8fr; gap: 55px;
+      padding: 63px 68px; border-radius: 9px; background: #e9eadd;
+    }
+    .guardrails::after { position: absolute; top: -175px; right: 9%; width: 345px; height: 345px; border: 1px solid rgb(83 92 64 / 13%); border-radius: 50%; box-shadow: 0 0 0 33px rgb(83 92 64 / 5%), 0 0 0 68px rgb(83 92 64 / 4%); content: ""; pointer-events: none; }
+    .guardrails h2 { position: relative; z-index: 1; max-width: 430px; font-size: clamp(37px, 4vw, 50px); }
+    .guardrails-copy { position: relative; z-index: 1; align-self: end; padding-bottom: 3px; color: #5e6558; font-size: 13px; line-height: 1.85; }
+    .guardrails-copy p { margin: 0 0 16px; }
+    .guardrail-points { display: flex; flex-wrap: wrap; gap: 8px; }
+    .guardrail-points span { padding: 8px 11px; border: 1px solid rgb(65 74 55 / 17%); border-radius: 99px; color: #42493e; font-size: 10px; font-weight: 650; }
+
+    .join { padding-block: 112px 124px; text-align: center; }
+    .join .section-kicker { margin-bottom: 15px; }
+    .join h2 { max-width: 640px; margin: 0 auto; font-size: clamp(44px, 5vw, 65px); }
+    .join-copy { max-width: 400px; margin: 17px auto 29px; color: var(--muted); font-size: 14px; line-height: 1.8; }
+    .waitlist-form { width: min(470px, 100%); display: flex; gap: 8px; margin: 0 auto; padding: 6px; border: 1px solid #dfdfd5; border-radius: 999px; background: var(--white); box-shadow: 0 6px 25px rgb(35 40 28 / 5%); }
+    .waitlist-form input { min-width: 0; flex: 1; padding: 0 15px; border: 0; outline: 0; background: transparent; color: var(--ink); font-size: 13px; }
+    .waitlist-form input::placeholder { color: #898d83; }
+    .waitlist-form .button { flex: none; padding: 13px 18px; cursor: pointer; }
+    .waitlist-form .button:disabled { opacity: .65; cursor: wait; }
+    .form-message { min-height: 23px; margin: 13px 0 0; color: #5b7045; font-size: 12px; }
+    .form-message.error { color: #a94438; }
+    .fine-print { margin: 0; color: #85877f; font-size: 10px; }
+    footer { display: flex; align-items: center; justify-content: space-between; padding-block: 23px; border-top: 1px solid var(--line); color: #777b71; font-size: 11px; }
+    footer .brand { color: var(--ink); font-size: 13px; }
+    .footer-note { display: flex; align-items: center; gap: 7px; }
+    .footer-note span { color: #809c5c; }
+
+    @media (max-width: 800px) {
+      .wrap { width: min(100% - 40px, 600px); }
+      .topbar { height: 72px; }
+      .nav { gap: 16px; }
+      .nav a:not(.nav-cta) { display: none; }
+      .hero { min-height: auto; grid-template-columns: 1fr; gap: 45px; padding-block: 74px 60px; }
+      .hero-copy { max-width: 500px; }
+      .scene { width: min(100%, 510px); min-height: 430px; margin-inline: auto; }
+      .section-head { grid-template-columns: 1fr; gap: 20px; }
+      section.content { padding-block: 82px; }
+      .guardrails { grid-template-columns: 1fr; gap: 25px; padding: 42px 36px; }
+      .guardrails-copy { max-width: 460px; }
+      .join { padding-block: 88px 95px; }
+    }
+    @media (max-width: 540px) {
+      .wrap { width: calc(100% - 36px); }
+      .brand { gap: 7px; }
+      .brand-mark, .brand-mark svg { width: 27px; height: 27px; }
+      .brand-name { font-size: 13px; }
+      .nav-cta { padding: 10px 11px; font-size: 10px; white-space: nowrap; }
+      .nav-cta .arrow { display: none; }
+      .hero { padding-block: 57px 49px; }
+      h1 { font-size: clamp(50px, 14vw, 72px); }
+      .hero-copy { margin-block: 20px 23px; font-size: 14px; }
+      .hero-actions { align-items: flex-start; flex-direction: column; gap: 11px; }
+      .proof { margin-top: 26px; }
+      .scene { min-height: 365px; }
+      .orbit { width: 275px; height: 275px; }
+      .avatar-animation { width: min(78%, 245px); height: min(77%, 275px); }
+      .spark-one { top: 72px; left: 29px; }
+      .spark-two { top: 141px; right: 25px; }
+      .spark-three { bottom: 76px; left: 40px; }
+      .ticker-inner { justify-content: flex-start; gap: 16px; min-width: 620px; padding-inline: 18px; font-size: 10px; }
+      .section-head { margin-bottom: 32px; }
+      .steps { grid-template-columns: 1fr; }
+      .step, .step + .step { min-height: auto; padding: 21px 0 24px; border-left: 0; border-bottom: 1px solid var(--line); }
+      .step h3 { margin-top: 17px; }
+      .guardrails { padding: 36px 25px; }
+      .guardrails::after { right: -45%; }
+      .waitlist-form { align-items: stretch; flex-direction: column; border-radius: 16px; padding: 8px; }
+      .waitlist-form input { min-height: 44px; padding-inline: 12px; }
+      .waitlist-form .button { min-height: 45px; }
+      footer { align-items: flex-start; flex-direction: column; gap: 13px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar wrap">
+    <a class="brand" href="#" aria-label="Mirrorkin home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 36 36" width="34" height="34" fill="none">
+          <path d="M18 3.5 21.7 13l9.8-3.1-5.8 8.5 8.1 6.2-10.2-.3-2.1 10-3.5-9.6-9.9 3.2 5.9-8.5-8.2-6.2 10.2.3L18 3.5Z" fill="#C9F36B" stroke="#20241F" stroke-width="1.2" stroke-linejoin="round"/>
+          <circle cx="18.2" cy="18" r="3.1" fill="#20241F"/>
+        </svg>
+      </span>
+      <span class="brand-name">mirrorkin</span>
+    </a>
+    <nav class="nav" aria-label="Main navigation">
+      <a href="#how-it-works">How it works</a>
+      <a href="#your-rules">Your rules</a>
+      <a href="/pricing">Pricing</a>
+      <a class="nav-cta" href="#join">Get early access <span class="arrow" aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero wrap">
+      <div>
+        <p class="eyebrow"><span class="eyebrow-dot"></span>A new kind of digital companion</p>
+        <h1>Another you,<br>showing up for<br><em>what’s next.</em></h1>
+        <p class="hero-copy">Imagine a little AI you that learns what matters, takes on digital tasks, and gets a little more capable over time. You set the boundaries. Your clone works within them.</p>
+        <div class="hero-actions">
+          <a class="button" href="#join">Join the waitlist <span class="arrow" aria-hidden="true">↗</span></a>
+          <span class="no-card">A first look at what we're building</span>
+        </div>
+        <div class="proof"><span class="proof-stars" aria-hidden="true">✳ &nbsp;✳ &nbsp;✳</span>Made to feel like you. Built to stay in your control.</div>
+      </div>
+
+      <div class="scene">
+        <span class="scene-label">A little you, out in the world</span>
+        <div class="orbit" aria-hidden="true"></div>
+        <span class="spark spark-one" aria-hidden="true">✳</span>
+        <span class="spark spark-two" aria-hidden="true">↗</span>
+        <span class="spark spark-three" aria-hidden="true">✦</span>
+        <img class="avatar-animation" id="avatar-animation" src="/avatar/idle.png" alt="A realistic miniature avatar rendered and animated in Blender">
+        <div class="caption">
+          <div><div class="caption-title">Your tiny is finding its way</div><div class="caption-sub">Learning a little more, every day</div></div>
+          <span class="caption-live">GROWING</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="ticker" aria-label="Research, learning, and meaningful work">
+      <div class="ticker-inner wrap">
+        <span>MADE FROM YOU</span><span class="ticker-star" aria-hidden="true">✳</span>
+        <span>BUILT TO LEARN</span><span class="ticker-star" aria-hidden="true">✳</span>
+        <span>READY TO HELP</span><span class="ticker-star" aria-hidden="true">✳</span>
+        <span>ALWAYS ON YOUR TERMS</span>
+      </div>
+    </div>
+
+    <section class="content wrap" id="how-it-works">
+      <div class="section-head">
+        <div>
+          <p class="section-kicker">More than a chatbot</p>
+          <h2>A small start.<br>A bigger life online.</h2>
+        </div>
+        <p class="section-copy">Your clone starts by getting to know what you care about. From there, it can help with research and real digital work—then learn from what you decide to do next.</p>
+      </div>
+      <div class="steps">
+        <article class="step">
+          <span class="step-index">01 — A little like you</span>
+          <h3>It starts with your world</h3>
+          <p>Share what you care about. Your tiny gets its own look, a memory that grows, and a clearer picture of what “helpful” means to you.</p>
+        </article>
+        <article class="step">
+          <span class="step-index">02 — Out in the world</span>
+          <h3>It finds ways to help</h3>
+          <p>From digging into a question to taking on useful online tasks, your clone can do more than talk about getting things done.</p>
+        </article>
+        <article class="step">
+          <span class="step-index">03 — Getting better</span>
+          <h3>It learns as it goes</h3>
+          <p>Feedback becomes useful memory. Each conversation helps your tiny understand you better and choose more helpful next steps.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="guardrails wrap" id="your-rules">
+      <div>
+        <p class="section-kicker">Your clone. Your call.</p>
+        <h2>More capable shouldn’t mean less in control.</h2>
+      </div>
+      <div class="guardrails-copy">
+        <p>Your tiny is designed to work within boundaries you choose—not make important calls behind your back. Spending and sensitive commitments aren't the same as everyday tasks.</p>
+        <div class="guardrail-points"><span>You set the limits</span><span>Money stays yours</span><span>People stay in control</span></div>
+      </div>
+    </section>
+
+    <section class="join wrap" id="join">
+      <p class="section-kicker">Come along for the beginning</p>
+      <h2>There’s room for another you.</h2>
+      <p class="join-copy">We’re building Mirrorkin one tiny at a time. Leave your email to hear when early access opens.</p>
+      <form class="waitlist-form" id="waitlist-form">
+        <label for="email" hidden>Email address</label>
+        <input id="email" name="email" type="email" placeholder="Your email address" autocomplete="email" maxlength="200" required>
+        <button class="button" type="submit">Join the waitlist <span class="arrow" aria-hidden="true">↗</span></button>
+      </form>
+      <p class="form-message" id="form-message" role="status" aria-live="polite"></p>
+      <p class="fine-print">We'll email you when early access opens.</p>
+    </section>
+  </main>
+
+  <footer class="wrap">
+    <a class="brand" href="#" aria-label="Mirrorkin home">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 36 36" width="27" height="27" fill="none">
+          <path d="M18 3.5 21.7 13l9.8-3.1-5.8 8.5 8.1 6.2-10.2-.3-2.1 10-3.5-9.6-9.9 3.2 5.9-8.5-8.2-6.2 10.2.3L18 3.5Z" fill="#C9F36B" stroke="#20241F" stroke-width="1.2" stroke-linejoin="round"/>
+          <circle cx="18.2" cy="18" r="3.1" fill="#20241F"/>
+        </svg>
+      </span>
+      <span>mirrorkin</span>
+    </a>
+    <span class="footer-note"><span aria-hidden="true">✳</span> A little more you, in the world.</span>
+    <span>© Mirrorkin</span>
+  </footer>
+  <script>
+    const avatar = document.getElementById("avatar-animation");
+    avatar.addEventListener("error", () => { avatar.hidden = true; });
+
+    if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const frames = [
+        ...Array(20).fill("idle.png"),
+        ...Array.from({ length: 8 }, (_, i) => `walk_${i}.png`),
+        ...Array(28).fill("idle.png"),
+        "blink.png", "blink.png"
+      ];
+      let frame = 0;
+      window.setInterval(() => {
+        frame = (frame + 1) % frames.length;
+        avatar.src = `/avatar/${frames[frame]}`;
+      }, 110);
+    }
+
+    const form = document.getElementById("waitlist-form");
+    const message = document.getElementById("form-message");
+    const submitButton = form.querySelector("button");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+
+      submitButton.disabled = true;
+      message.classList.remove("error");
+      message.textContent = "Adding you to the list…";
+      try {
+        const response = await fetch("/waitlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: form.elements.email.value })
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "We couldn't add you right now. Please try again.");
+        message.textContent = result.message;
+        form.reset();
+      } catch (error) {
+        message.classList.add("error");
+        message.textContent = error.message || "Couldn't reach the server. Please try again.";
+      } finally {
+        submitButton.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

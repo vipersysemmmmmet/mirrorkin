@@ -1,0 +1,11 @@
+{
+  "gender": 0.0,
+  "age": 0.45,
+  "muscle": 0.45,
+  "weight": 0.38,
+  "proportions": 0.7,
+  "height": 0.5,
+  "cupsize": 0.5,
+  "firmness": 0.5,
+  "race": {"asian": 0.33, "caucasian": 0.33, "african": 0.33}
+}

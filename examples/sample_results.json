@@ -1,0 +1,44 @@
+{
+  "ideas": [
+    {"idea": "Check for unclaimed money", "why_it_fits": "Anyone who has moved or changed jobs may have unclaimed deposits; it takes minutes."},
+    {"idea": "Sell design work", "why_it_fits": "You listed graphic design and have about 10 free hours a week."}
+  ],
+  "opportunities": [
+    {
+      "title": "EXAMPLE: Search your state's unclaimed property list",
+      "kind": "unclaimed property", "idea": "Check for unclaimed money",
+      "url": "https://example.org/unclaimed",
+      "summary": "Sample entry for testing. A real run would link the official state site.",
+      "pay_usd": 80, "cost_usd": 0, "human_hours": 0.25, "who_does_it": "human",
+      "deadline": "", "fit": 9, "success_chance": 0.3, "legitimacy": 0.95,
+      "requires_upfront_payment": false, "involves_trading_or_gambling": false,
+      "clone_would_pose_as_human": false, "risk_flags": [],
+      "next_step": "Search your name and past addresses; file a claim if listed."
+    },
+    {
+      "title": "EXAMPLE: Logo design contest for a local nonprofit",
+      "kind": "design contest", "idea": "Sell design work",
+      "url": "https://example.org/contest",
+      "summary": "Sample entry for testing.",
+      "pay_usd": 400, "cost_usd": 1, "human_hours": 4, "who_does_it": "both",
+      "deadline": "2026-11-15", "fit": 8, "success_chance": 0.1, "legitimacy": 0.85,
+      "requires_upfront_payment": false, "involves_trading_or_gambling": false,
+      "clone_would_pose_as_human": false, "risk_flags": [],
+      "next_step": "Clone drafts three concepts for you to pick and polish."
+    },
+    {
+      "title": "EXAMPLE: 'Design ambassador' job, $49 starter kit fee",
+      "kind": "job offer", "idea": "Sell design work",
+      "url": "https://example.org/ambassador",
+      "summary": "Sample scam entry. The policy checker should block it.",
+      "pay_usd": 1000, "cost_usd": 49, "human_hours": 10, "who_does_it": "human",
+      "deadline": "", "fit": 5, "success_chance": 0.05, "legitimacy": 0.2,
+      "requires_upfront_payment": true, "involves_trading_or_gambling": false,
+      "clone_would_pose_as_human": false, "risk_flags": ["asks for a fee before work"],
+      "next_step": "Avoid."
+    }
+  ],
+  "new_sources": [{"url": "https://example.org", "what": "sample source"}],
+  "lessons": ["Found-money checks are quick wins for a first run."],
+  "daily_text": "Hey, it's tiny you! This is a sample run, so these finds are made up. In a real run I'd tell you about the best ones, like money you might be owed. I also blocked one that asked for a fee up front. Scams do that."
+}
