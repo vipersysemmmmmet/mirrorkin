@@ -8,7 +8,7 @@ import os
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-from . import db, tinys
+from . import credits, db, tinys
 from .chain import ADDRESS_RE, PaymentError, verify_usdc_payment
 from .config import PASS_DAYS, PLANS, TRIAL_DAYS, USDC_DECIMALS, network, pay_to, port
 
@@ -55,7 +55,15 @@ def login(_user, body) -> dict:
 
 
 def me(user, _body) -> dict:
-    return db.account_info(user)
+    return {**db.account_info(user), "credits": credits.balance(user["id"])}
+
+
+def get_credits(user, _body) -> dict:
+    return credits.info(user)
+
+
+def buy_credits(user, body) -> dict:
+    return credits.buy(user, str(body.get("tx_hash", "")))
 
 
 def set_wallet(user, body) -> dict:
@@ -95,7 +103,7 @@ def chat(user, body) -> dict:
     if image is not None and (not isinstance(image, str) or len(image) > MAX_IMAGE_B64
                               or messages[-1]["role"] != "user"):
         raise HTTPError(400, "Invalid screenshot.")
-    db.use(user, "chats")
+    credits.use(user, "chats")  # plan allowance first, then credits
     import base64
     import binascii
     from tiny.brain import BrainError, ClaudeBrain
@@ -178,7 +186,8 @@ PRIVATE = {("GET", "/me"): me, ("POST", "/wallet"): set_wallet, ("POST", "/pay")
            ("POST", "/chat"): chat, ("POST", "/logout"): logout,
            ("GET", "/tiny"): get_tiny, ("POST", "/tiny/settings"): tiny_settings,
            ("POST", "/tiny/skills"): tiny_skills, ("POST", "/tiny/look"): tiny_look,
-           ("POST", "/tiny/photo"): tiny_photo}
+           ("POST", "/tiny/photo"): tiny_photo,
+           ("GET", "/credits"): get_credits, ("POST", "/credits/buy"): buy_credits}
 APP_PAGE = Path(__file__).with_name("app.html")
 
 
@@ -271,6 +280,9 @@ class Handler(BaseHTTPRequestHandler):
 def serve() -> None:
     host = os.environ.get("SOUL_HOST", "127.0.0.1")
     net = network()
+    credits.fee_bps()  # stop at start-up if the fee setting is invalid
+    print(f"Credits: pool {credits.pool_address() or 'NOT SET'} | team fee {credits.fee_bps() / 100:g}% "
+          f"to {credits.team_address() or 'NOT SET (SOUL_TEAM_ADDRESS)'}")
     print(f"Soul Simulator server on http://{host}:{port()} | {net['label']} | "
           f"payments to {pay_to() or 'NOT SET (add SOUL_PAY_TO to .env)'}")
     ThreadingHTTPServer((host, port()), Handler).serve_forever()
