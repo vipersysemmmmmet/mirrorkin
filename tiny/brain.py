@@ -108,7 +108,8 @@ class ClaudeCodeBrain:
         try:
             # Chat gets her full toolkit: web, her own browser and her own inbox (rules in browser_mcp.py)
             return plain(claude_code.ask(claude_code.transcript(history), system, image=image,
-                                         tools=["WebSearch", "WebFetch"], browser=True, timeout=900))
+                                         tools=["WebSearch", "WebFetch"], browser=True, timeout=900,
+                                         hands_optional=True))
         except claude_code.ClaudeCodeError as e:
             raise BrainError(str(e))
 

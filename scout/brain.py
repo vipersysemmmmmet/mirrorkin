@@ -207,7 +207,8 @@ def run_scout_with_claude_code(prompt: str) -> dict:
     """Same scouting through Claude Code (web search and page reading only) when there's no API key."""
     from tiny import claude_code
     try:
-        result = claude_code.ask(prompt, SYSTEM, tools=["WebSearch", "WebFetch"], schema=SCHEMA, timeout=900)
+        result = claude_code.ask(prompt, SYSTEM, tools=["WebSearch", "WebFetch"], schema=SCHEMA, timeout=900,
+                                 web_required=True)
     except claude_code.ClaudeCodeError as e:
         raise ScoutError(str(e))
     result["usage"] = {"input_tokens": 0, "output_tokens": 0}

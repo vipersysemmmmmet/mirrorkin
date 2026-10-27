@@ -28,6 +28,8 @@
   "goals": "Earn some extra income online and find money I'm owed.",
   "avoid": "Anything that needs me on calls during work hours.",
   "allow_trading": true,
+  "spending": {"hold": "native", "enabled": false, "dry_run": true, "auto_per_trade_usd": 5, "max_per_trade_usd": 25, "daily_usd": 50, "chains": ["solana", "base", "ethereum", "arbitrum", "optimism", "polygon"]},
+  "brain_mode": "auto",
   "crypto_interest": true,
   "max_upfront_usd": 0
 }

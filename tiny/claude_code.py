@@ -35,14 +35,59 @@ BROWSER_TOOLS = [f"mcp__browser__{t}" for t in
                   "start_background_task", "tell_human", "basedagents")]
 
 
+MODES = ("free", "auto", "claude")
+PAUSED = ("That needs Claude (the web, her browser or her coding sandbox), and she's on the free brain. "
+          "It'll run when Claude is switched back on.")
+
+
+def mode() -> str:
+    """Which brain she uses: 'free' (local model only, no Claude credit), 'auto' (Claude, falling
+    back to the local model when Claude fails or credit runs out) or 'claude'. Set brain_mode in
+    profile.json, or TINY_BRAIN_MODE."""
+    from . import life
+    value = os.environ.get("TINY_BRAIN_MODE") or life.profile().get("brain_mode", "auto")
+    return value if value in MODES else "auto"
+
+
 def ask(prompt: str, system: str, *, image: bytes | None = None, tools: list[str] | None = None,
-        schema: dict | None = None, timeout: int = 180, sandbox: str | None = None, browser: bool = False):
+        schema: dict | None = None, timeout: int = 180, sandbox: str | None = None, browser: bool = False,
+        hands_optional: bool = False, web_required: bool = False):
     """One request. Returns text, or a dict when `schema` is given.
 
     With `sandbox` (a running job container's name), the brain also gets tools to run code,
     and they only reach inside that container. With `browser`, she gets her own visible browser
-    (rules enforced in browser_mcp.py).
+    (rules enforced in browser_mcp.py). `hands_optional` lets a request (like chat) run on the
+    free brain without the browser instead of waiting for Claude. `web_required` marks jobs that
+    are pointless offline (the Scout), so the free brain never invents search results.
     """
+    needs_hands = bool(sandbox or browser or web_required) and not hands_optional
+    current = mode()
+    if current == "free":
+        if needs_hands:
+            raise ClaudeCodeError(PAUSED)
+        return _local(prompt, system, image, schema, offline=bool(tools or browser))
+    try:
+        return _claude(prompt, system, image=image, tools=tools, schema=schema, timeout=timeout,
+                       sandbox=sandbox, browser=browser)
+    except ClaudeCodeError as claude_error:
+        if current == "claude" or needs_hands:
+            raise
+        try:
+            return _local(prompt, system, image, schema, offline=bool(tools or browser))
+        except ClaudeCodeError as local_error:
+            raise ClaudeCodeError(f"Claude: {claude_error} | free brain: {local_error}")
+
+
+def _local(prompt, system, image, schema, offline: bool):
+    from . import local_llm
+    try:
+        return local_llm.ask(prompt, system, image=image, schema=schema, offline_note=offline)
+    except local_llm.LocalError as e:
+        raise ClaudeCodeError(str(e))
+
+
+def _claude(prompt: str, system: str, *, image: bytes | None = None, tools: list[str] | None = None,
+            schema: dict | None = None, timeout: int = 180, sandbox: str | None = None, browser: bool = False):
     if not available():
         raise ClaudeCodeError("Claude Code isn't installed, and there's no API key yet.")
     content = [{"type": "text", "text": prompt}]

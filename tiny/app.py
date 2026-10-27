@@ -26,6 +26,7 @@ from .brain import BrainError, get_brain
 from .look_window import LookWindow
 from . import sprites
 from . import memelab
+from . import claude_code
 from . import screen
 from . import sandbox
 from . import learning
@@ -395,8 +396,9 @@ class Tiny(QWidget):
         self.trade_timer = QTimer(self, timeout=self.trade_tick)
         self.trade_timer.start(10 * 60 * 1000)
         QTimer.singleShot(2 * 60 * 1000, self.trade_tick)
-        if life.profile().get("allow_trading"):
-            memelab.start()  # strategy lab: free, code-only paper testing every 2 minutes
+        from . import trading_service
+        if life.profile().get("allow_trading") and not trading_service.running():
+            memelab.start()  # strategy lab while the app is open (the trading service runs it otherwise)
         if autopilot.settings()["autopilot"]:
             QTimer.singleShot(60 * 1000, self.pilot_tick)
         # Scout by herself once a day, so new opportunities keep coming
@@ -564,6 +566,7 @@ class Tiny(QWidget):
         menu.addAction("🔎 What did you find?", self.tell_finds)
         menu.addAction("📈 Watching trends…" if self.trend_run else "📈 What's trending", self.show_trends)
         menu.addAction("📊 Trading…" if self.trade_run else "📊 Paper trading", self.show_trading)
+        menu.addAction("📒 Trading log", self.open_trading_log)
         menu.addAction("🧭 Scouting… (a while)" if self.scouter else "🧭 Go scouting now", self.go_scouting)
         menu.addAction("🗓 Stop daily scouting" if auto_scout_on() else "🗓 Scout by myself every day",
                        self.toggle_daily_scout)
@@ -635,6 +638,14 @@ class Tiny(QWidget):
             self.say("No deadlines in the next two weeks. Relax!")
             return
         self.say("Coming up: " + "; ".join(f"{o['title'][:40]} ({d}d)" for o, d in soon[:3]), 14)
+
+    def open_trading_log(self) -> None:
+        from . import trading_service
+        if not trading_service.running():
+            memelab.start()
+            trading_service.serve_page_in_background()  # page only; the lab runs in the app
+        webbrowser.open(trading_service.URL)
+        life.log("opened trading log")
 
     def open_scout(self) -> None:
         webbrowser.open(web.URL)
@@ -745,8 +756,8 @@ class Tiny(QWidget):
         self.pilot_tick()
 
     def pilot_tick(self) -> None:
-        if not autopilot.settings()["autopilot"] or self.pilot:
-            return
+        if not autopilot.settings()["autopilot"] or self.pilot or claude_code.mode() == "free":
+            return  # Autopilot acts through her browser, which needs Claude
         self.pilot = keep(AutopilotRun())
         self.pilot.done.connect(self.pilot_done)
         self.pilot.start()
@@ -811,8 +822,9 @@ class Tiny(QWidget):
             self.say("Worker mode paused.")
 
     def work_tick(self) -> None:
-        if not worker.state()["on"] or self.work_run or autopilot.settings()["autopilot"]:
-            return
+        if (not worker.state()["on"] or self.work_run or autopilot.settings()["autopilot"]
+                or claude_code.mode() == "free"):
+            return  # jobs need her sandbox and browser, which need Claude
         self.work_run = keep(WorkerRun())
         self.work_run.done.connect(self.work_done)
         self.work_run.start()
@@ -927,16 +939,11 @@ class Tiny(QWidget):
     # ---- paper trading ----
     def trade_tick(self) -> None:
         """Trade when the last session was long enough ago (every 24h / SESSIONS_PER_DAY)."""
-        from datetime import datetime, timedelta
-        if not life.profile().get("allow_trading") or self.trade_run:
-            return
-        history = trading.state()["history"]
-        if history:
-            last = history[-1]["date"]
-            last_time = datetime.strptime(last, "%Y-%m-%d %H:%M" if len(last) > 10 else "%Y-%m-%d")
-            if datetime.now() - last_time < timedelta(hours=24 / trading.SESSIONS_PER_DAY):
-                return
-        self.paper_trade()
+        from . import trading_service
+        if not life.profile().get("allow_trading") or self.trade_run or trading_service.running():
+            return  # the always-on trading service runs her sessions when it's installed
+        if trading.session_due():
+            self.paper_trade()
 
     def paper_trade(self) -> None:
         if self.trade_run:
@@ -1019,8 +1026,8 @@ class Tiny(QWidget):
     def daily_scout(self) -> None:
         from datetime import date
         from scout import memory as scout_memory
-        if not auto_scout_on() or self.scouter:
-            return
+        if not auto_scout_on() or self.scouter or claude_code.mode() == "free":
+            return  # scouting and trend scans search the web, which needs Claude
         if trends.latest_date() != date.today().isoformat() and not self.trend_run:
             self.watch_trends(quiet=True)
         latest = scout_memory.latest_run()
