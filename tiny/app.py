@@ -25,6 +25,7 @@ from .account_window import AccountWindow
 from .brain import BrainError, get_brain
 from .look_window import LookWindow
 from . import sprites
+from . import memelab
 from . import screen
 from . import sandbox
 from . import learning
@@ -394,6 +395,8 @@ class Tiny(QWidget):
         self.trade_timer = QTimer(self, timeout=self.trade_tick)
         self.trade_timer.start(10 * 60 * 1000)
         QTimer.singleShot(2 * 60 * 1000, self.trade_tick)
+        if life.profile().get("allow_trading"):
+            memelab.start()  # strategy lab: free, code-only paper testing every 2 minutes
         if autopilot.settings()["autopilot"]:
             QTimer.singleShot(60 * 1000, self.pilot_tick)
         # Scout by herself once a day, so new opportunities keep coming
