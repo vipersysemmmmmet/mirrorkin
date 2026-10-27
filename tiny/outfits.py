@@ -52,6 +52,21 @@ SKINS = {
 SHOES = "shoes03"
 
 
+# MakeHuman body sliders for each build
+BUILDS = {
+    "slim": {"weight": 0.3, "cupsize": 0.45},
+    "average": {"weight": 0.45, "cupsize": 0.5},
+    "curvy": {"weight": 0.62, "cupsize": 0.68, "proportions": 0.8},
+    "plus-size": {"weight": 0.82, "cupsize": 0.72},
+}
+
+
+def body_for(look: dict) -> dict:
+    body = json.loads((ROOT / "avatar" / "body.json").read_text())
+    body["gender"] = 1.0 if look.get("body") == "masculine" else 0.0
+    return {**body, **BUILDS.get(look.get("build"), {})}
+
+
 def brightness(hex_colour: str) -> float:
     r, g, b = (int(hex_colour.lstrip("#")[i:i + 2], 16) / 255 for i in (0, 2, 4))
     return 0.2126 * r + 0.7152 * g + 0.0722 * b

@@ -1,6 +1,6 @@
 """Desktop tiny you: walks along the bottom of the screen, chats, and reminds you of things.
 
-The character is drawn from look settings that match its owner (see look.py).
+It's a 3D tiny built in Blender from look settings that match its owner (see look.py).
 """
 
 import html
@@ -23,7 +23,6 @@ from .threads import keep
 from . import life, look
 from .account_window import AccountWindow
 from .brain import BrainError, get_brain
-from .character import draw_character
 from .look_window import LookWindow
 from . import sprites
 from . import screen
@@ -44,7 +43,6 @@ W, H = 260, 330          # window size; the character stands at the bottom centr
 SPRITE_H = 200           # on-screen height of the realistic tiny you
 WATCH_EVERY_S = 60       # how often watch mode glances at the screen
 WATCH_MINUTES = 30       # watch mode switches itself off after this long
-CARTOON_TOP = 118        # cartoon head sits this far above the bottom
 FPS_MS = 33
 WALK_SPEED = 1.6
 INK = QColor("#1d1d1f")
@@ -409,6 +407,9 @@ class Tiny(QWidget):
         self.sprites = None
         self.load_sprites()
         self.rebuilder = None
+        self.pending_look = None
+        if not self.sprites:  # first run, or the frames were deleted: build the 3D tiny
+            QTimer.singleShot(1000, lambda: self.set_look(self.look))
         # Screen watching: off until the human turns it on
         self.watching = False
         self.watch_started = 0.0
@@ -480,9 +481,9 @@ class Tiny(QWidget):
 
     # ---- drawing ----
     def load_sprites(self) -> None:
-        """Use the realistic Blender frames when chosen and available; otherwise the cartoon."""
+        """The Blender-built frames (none until the first build finishes)."""
         self.sprites = None
-        if self.look.get("style", "realistic") == "realistic" and sprites.available():
+        if sprites.available():
             self.sprites = sprites.SpriteSet(SPRITE_H, self.devicePixelRatioF())
 
     def sprite_name(self) -> str:
@@ -493,7 +494,7 @@ class Tiny(QWidget):
         return "blink" if self.frame < self.blink_until else "idle"
 
     def head_top(self) -> float:
-        return H - 4 - self.sprites.height if self.sprites else H - CARTOON_TOP
+        return H - 4 - (self.sprites.height if self.sprites else SPRITE_H)
 
     def paintEvent(self, _event) -> None:
         p = QPainter(self)
@@ -510,9 +511,6 @@ class Tiny(QWidget):
                 p.setFont(QFont("Helvetica", 12, QFont.Bold))
                 z = (self.frame // 10) % 3
                 p.drawText(QPoint(int(W / 2 + 22), int(self.head_top() + 14 - z * 6)), "z" * (z + 1))
-        else:
-            draw_character(p, W / 2, H - 6, self.frame, self.state == "walk",
-                           self.state == "sleep", self.frame < self.blink_until, self.facing, self.look)
         if self.watching:
             # Always visible while tiny you can see the screen
             p.setFont(QFont("Apple Color Emoji", 16))
@@ -1125,20 +1123,13 @@ class Tiny(QWidget):
             self.say(text, 15)
 
     def set_look(self, new_look: dict) -> None:
-        if new_look.get("style", "realistic") == "realistic":
-            self.say("Getting dressed in Blender… back in a minute!", 20)
-            self.pending_look = new_look
-            self.rebuilder = keep(RebuildWorker(new_look))
-            self.rebuilder.done.connect(self.rebuilt)
-            self.rebuilder.start()
-        else:
-            self.look = new_look
-            look.save(new_look)
-            life.log("changed look")
-            if self.tray:
-                self.tray.setIcon(self.tray_icon())
-            self.load_sprites()
-            self.say("Ooh, I love it. Now I look like you!")
+        if self.rebuilder:
+            return
+        self.say("Getting dressed in Blender… back in a minute!", 20)
+        self.pending_look = new_look
+        self.rebuilder = keep(RebuildWorker(new_look))
+        self.rebuilder.done.connect(self.rebuilt)
+        self.rebuilder.start()
 
     def rebuilt(self, error: str) -> None:
         self.rebuilder = None
@@ -1154,14 +1145,13 @@ class Tiny(QWidget):
         life.log("rebuilt realistic look", error)
 
     def tray_icon(self) -> QIcon:
-        pix = QPixmap(64, 64)
-        pix.fill(Qt.transparent)
-        p = QPainter(pix)
-        p.setRenderHint(QPainter.Antialiasing)
-        p.scale(0.55, 0.55)
-        draw_character(p, 58, 114, 0, False, False, False, 1, self.look)
-        p.end()
-        return QIcon(pix)
+        idle = sprites.SPRITE_DIR / "idle.png"
+        if not idle.exists():
+            return QIcon()
+        pix = QPixmap(str(idle))
+        # The head and shoulders read best at tray size
+        side = pix.width() // 3
+        return QIcon(pix.copy((pix.width() - side) // 2, 0, side, side))
 
     def make_tray(self) -> None:
         self.tray = None

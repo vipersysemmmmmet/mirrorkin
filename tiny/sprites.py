@@ -58,16 +58,17 @@ class SpriteSet:
 def rebuild(look: dict) -> str:
     """Re-render the realistic tiny you for a new look. Returns '' on success, else an error."""
     if not Path(BLENDER).exists():
-        return "Blender isn't installed, so I can only use the cartoon look."
-    from .outfits import outfit_for
+        return "Blender isn't installed, so I can't build my 3D look yet."
+    from .outfits import body_for, outfit_for
     try:
         outfit = outfit_for(look)
     except ValueError as exc:
         return str(exc)
     AVATAR_DIR.mkdir(parents=True, exist_ok=True)
     (AVATAR_DIR / "outfit.json").write_text(json.dumps(outfit, indent=2))
+    (AVATAR_DIR / "body.json").write_text(json.dumps(body_for(look), indent=2))
     cmd = [BLENDER, "--background", "--python", str(ROOT / "avatar" / "build_tiny.py"), "--",
-           "--look", str(life.DATA / "look.json"), "--body", str(ROOT / "avatar" / "body.json"),
+           "--look", str(life.DATA / "look.json"), "--body", str(AVATAR_DIR / "body.json"),
            "--outfit", str(AVATAR_DIR / "outfit.json"), "--out", str(AVATAR_DIR),
            "--size", "400", "--sprites"]
     try:

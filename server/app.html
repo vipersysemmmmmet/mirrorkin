@@ -60,6 +60,10 @@
     .status b { font-weight: 700; }
     .upload { display: grid; gap: 10px; }
     .upload input[type=file] { font-size: 12px; }
+    .fix-look summary { cursor: pointer; font-size: 13px; font-weight: 650; padding: 4px 0; }
+    .look-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .look-grid input[type=color] { height: 42px; padding: 4px; width: 100%; }
+    .look-grid .check { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 650; }
     .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 
     .switches { display: grid; gap: 2px; }
@@ -150,6 +154,21 @@
           </div>
           <p class="muted">We read your photo to pick hair, skin tone, glasses and clothes, then build your tiny in Blender. The photo itself isn't stored.</p>
           <p class="msg" id="photo-msg" role="status"></p>
+          <details class="fix-look" id="fix-look">
+            <summary>Not quite you? Fix your look</summary>
+            <div class="look-grid">
+              <label class="field">Hair<select data-look="hair_style"></select></label>
+              <label class="field">Hair colour<input type="color" data-look="hair_color"></label>
+              <label class="field">Skin<input type="color" data-look="skin"></label>
+              <label class="field">Build<select data-look="build"></select></label>
+              <label class="field">Top<select data-look="top_style"></select></label>
+              <label class="field">Top colour<input type="color" data-look="top_color"></label>
+              <label class="field">Bottoms<select data-look="bottom_style"></select></label>
+              <label class="field">Bottoms colour<input type="color" data-look="bottom_color"></label>
+              <label class="check"><input type="checkbox" data-look="glasses"> Glasses</label>
+            </div>
+            <p class="muted">Change anything, then press Rebuild.</p>
+          </details>
         </div>
         <label class="field" for="name">Name your tiny
           <input id="name" maxlength="40">
@@ -227,6 +246,7 @@
       tiny = t;
       $("tiny-name").textContent = t.name; if (document.activeElement !== $("name")) $("name").value = t.name;
       $("body").value = t.look.body || "feminine";
+      if (!$("fix-look").contains(document.activeElement)) fillLook(t.look);
       renderAvatar(); renderSwitches(); renderSkills();
       clearTimeout(pollTimer);
       if (t.avatar_status === "queued" || t.avatar_status === "building") pollTimer = setTimeout(refresh, 3000);
@@ -332,9 +352,22 @@
       } catch (e) { say("photo-msg", e.message || "Couldn't use that photo. Try a JPG or PNG.", true); }
       finally { $("upload").disabled = false; }
     };
+    function fillLook(look) {
+      for (const el of document.querySelectorAll("[data-look]")) {
+        const key = el.dataset.look;
+        if (el.tagName === "SELECT" && !el.options.length)
+          for (const o of catalogue.look_options[key]) el.add(new Option(o[0].toUpperCase() + o.slice(1), o));
+        if (el.type === "checkbox") el.checked = !!look[key]; else if (look[key]) el.value = look[key];
+      }
+    }
+    function readLook() {
+      const look = { body: $("body").value };
+      for (const el of document.querySelectorAll("[data-look]")) look[el.dataset.look] = el.type === "checkbox" ? el.checked : el.value;
+      return look;
+    }
     $("rebuild").onclick = async () => {
       say("photo-msg", "Rebuilding…");
-      try { render(await api("POST", "/tiny/look", { look: { body: $("body").value } })); say("photo-msg", "Queued."); }
+      try { render(await api("POST", "/tiny/look", { look: readLook() })); say("photo-msg", "Queued."); }
       catch (e) { say("photo-msg", e.message, true); }
     };
 

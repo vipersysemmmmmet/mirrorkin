@@ -7,29 +7,26 @@ from PySide6.QtWidgets import (QCheckBox, QColorDialog, QComboBox, QFileDialog, 
 
 from .threads import keep
 from . import look as looks
-from .character import draw_character
+from . import sprites
 
 
 class Preview(QWidget):
-    def __init__(self, get_look):
-        super().__init__()
-        self.get_look = get_look
-        self.frame = 0
-        self.setFixedSize(220, 230)
-        self.timer = QTimer(self, timeout=self.tick)
-        self.timer.start(33)
+    """The current 3D tiny. New settings show up after Save, once Blender has built them."""
 
-    def tick(self) -> None:
-        self.frame += 1
-        self.update()
+    def __init__(self):
+        super().__init__()
+        self.setFixedSize(220, 230)
 
     def paintEvent(self, _event) -> None:
         p = QPainter(self)
-        p.setRenderHint(QPainter.Antialiasing)
+        p.setRenderHint(QPainter.SmoothPixmapTransform)
         p.fillRect(QRectF(0, 0, self.width(), self.height()), QColor("#efedf7"))
-        p.scale(1.9, 1.9)
-        blink = self.frame % 150 < 4
-        draw_character(p, 58, 116, self.frame, False, False, blink, 1, self.get_look())
+        idle = QImage(str(sprites.SPRITE_DIR / "idle.png"))
+        if idle.isNull():
+            p.drawText(QRectF(0, 0, self.width(), self.height()), Qt.AlignCenter, "Not built yet")
+            return
+        idle = idle.scaled(self.width(), self.height(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
+        p.drawImage((self.width() - idle.width()) // 2, (self.height() - idle.height()) // 2, idle)
 
 
 class PhotoJob(QThread):
@@ -83,8 +80,7 @@ class LookWindow(QWidget):
         self.job = None
         self.setWindowTitle("Change my look")
 
-        self.preview = Preview(lambda: self.look)
-        self.style = self.combo(looks.STYLES, "style")
+        self.preview = Preview()
         self.hair_style = self.combo(looks.HAIR_STYLES, "hair_style")
         self.facial_hair = self.combo(looks.FACIAL_HAIR, "facial_hair")
         self.extra = self.combo(looks.EXTRAS, "extra")
@@ -94,7 +90,6 @@ class LookWindow(QWidget):
         self.glasses.toggled.connect(lambda on: self.set("glasses", on))
 
         form = QFormLayout()
-        form.addRow("Style", self.style)
         form.addRow("Skin", Swatches(looks.SKIN_TONES, lambda c: self.set("skin", c)))
         form.addRow("Hair", self.hair_style)
         form.addRow("Hair colour", Swatches(looks.HAIR_COLORS, lambda c: self.set("hair_color", c)))
@@ -151,15 +146,14 @@ class LookWindow(QWidget):
     def open(self, current: dict) -> None:
         self.apply(current)
         self.status.setText("Only these settings are saved. Photos are never stored. "
-                            "The preview is the cartoon; Realistic is built in Blender when you save.")
+                            "Your tiny is rebuilt in Blender when you save (about a minute).")
         self.show()
         self.raise_()
         self.activateWindow()
 
     def apply(self, values: dict) -> None:
         self.look = {**self.look, **values}
-        for box, key, options, editable in ((self.style, "style", looks.STYLES, False),
-                                            (self.hair_style, "hair_style", looks.HAIR_STYLES, False),
+        for box, key, options, editable in ((self.hair_style, "hair_style", looks.HAIR_STYLES, False),
                                             (self.facial_hair, "facial_hair", looks.FACIAL_HAIR, False),
                                             (self.extra, "extra", looks.EXTRAS, False),
                                             (self.top_style, "top_style", looks.TOP_STYLES, True),

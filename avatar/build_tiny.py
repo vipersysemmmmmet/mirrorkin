@@ -106,7 +106,7 @@ def tint(obj, color: str) -> None:
         gray = nodes.new("ShaderNodeRGBToBW")
         cap = nodes.new("ShaderNodeMath")  # printed logos and white trim would glow through dark colours
         cap.operation = "MINIMUM"
-        cap.inputs[1].default_value = mean * 1.4
+        cap.inputs[1].default_value = mean  # logos and trim no brighter than the fabric
         _, a_in, b_in, result = colour_mix(nodes)
         r, g, b, _ = hex_to_rgba(color)
         b_in.default_value = (min(r / mean, 4), min(g / mean, 4), min(b / mean, 4), 1)
@@ -149,7 +149,6 @@ def average_colour(image) -> tuple:
     return tuple(channel / weight for channel in total)
 
 
-RENDER_LIGHT = (0.59, 0.47, 0.44)  # per-channel calibration through the stage lights and colour management
 
 
 def match_skin(human, color: str) -> None:
@@ -166,7 +165,7 @@ def match_skin(human, color: str) -> None:
         targets = [l.to_socket for l in tex.outputs["Color"].links if l.to_node.type != "BSDF_PRINCIPLED"]
         avg = average_colour(tex.image)
         # Compensate per channel for the stage lights and render colour management.
-        want = [c / RENDER_LIGHT[i] for i, c in enumerate(hex_to_rgba(color)[:3])]
+        want = hex_to_rgba(color)[:3]  # calibrate_skin() then corrects for the stage lights
         balance, a_in, b_in, result = colour_mix(tree.nodes)
         balance.name = "skinTone"
         b_in.default_value = (*(min(want[c] / max(avg[c], 0.01), 4) for c in range(3)), 1)
@@ -201,12 +200,63 @@ def dress(human, look: dict, outfit: dict) -> None:
     if top:
         tint(top, look["top_color"])
         # Smooth before lifting so the fabric fit does not pull back into the skin.
-        smooth = top.modifiers.new("fabric", "SMOOTH")
-        smooth.factor, smooth.iterations = 0.6, 8
+        if "tube_top" in outfit["top"]:  # smoothing pulls looser tops into the body
+            smooth = top.modifiers.new("fabric", "SMOOTH")
+            smooth.factor, smooth.iterations = 0.6, 8
         lift = top.modifiers.new("lift", "DISPLACE")
         lift.direction, lift.strength, lift.mid_level = "NORMAL", 0.02, 0.0
     if outfit.get("shoes"):
         add_asset(human, "clothes", outfit["shoes"], "Clothes")
+
+
+def skin_node(human):
+    for mat in human.data.materials:
+        group = next((n for n in mat.node_tree.nodes if n.type == "GROUP"), None) if mat and mat.use_nodes else None
+        if group and group.node_tree.nodes.get("skinTone"):
+            return group.node_tree.nodes["skinTone"]
+    return None
+
+
+def face_colour(path: str) -> tuple | None:
+    """Mean linear colour of the cheeks in a front render (the head is top centre)."""
+    img = bpy.data.images.load(path, check_existing=False)
+    w, h = img.size
+    px = img.pixels[:]
+    total, n = [0.0, 0.0, 0.0], 0
+    for y in range(int(h * 0.80), int(h * 0.84)):      # rows count up from the bottom
+        for x in range(int(w * 0.48), int(w * 0.52)):
+            i = (y * w + x) * 4
+            if px[i + 3] > 0.99:
+                for c in range(3):
+                    total[c] += px[i + c]
+                n += 1
+    bpy.data.images.remove(img)
+    if not n:
+        return None
+    # PNG pixels come back as stored (sRGB); compare in linear like the shader does
+    return tuple((v / 12.92) if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4 for v in (t / n for t in total))
+
+
+def calibrate_skin(human, color: str, out: str) -> None:
+    """Lighting changes how skin reads, so render the face small, measure it against the photo's
+    skin colour and correct, twice. The finished tiny's skin then matches the photo."""
+    node = skin_node(human)
+    if node is None:
+        return
+    scene = bpy.context.scene
+    size = scene.render.resolution_x
+    scene.render.resolution_x = scene.render.resolution_y = 200
+    want = hex_to_rgba(color)[:3]
+    b_in = [i for i in node.inputs if i.type == "RGBA"][1]
+    path = os.path.join(out, "_calibrate.png")
+    for _ in range(2):
+        render_to(path)
+        got = face_colour(path)
+        if not got:
+            break
+        b_in.default_value = (*(min(4.0, b_in.default_value[c] * want[c] / max(got[c], 0.002)) for c in range(3)), 1)
+    os.remove(path)
+    scene.render.resolution_x = scene.render.resolution_y = size
 
 
 def relax_pose(human, arm_angle: float = 32) -> None:
@@ -349,6 +399,8 @@ def main() -> None:
     height = human.dimensions.z
     setup_stage(height, opts.size)
     os.makedirs(opts.out, exist_ok=True)
+    if opts.outfit:
+        calibrate_skin(human, look["skin"], opts.out)
     render_to(os.path.join(opts.out, "front.png"))
     print(f"TINY_RENDERED {opts.out}/front.png height={height:.2f}")
     if opts.sprites and opts.outfit:

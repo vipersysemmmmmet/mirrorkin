@@ -118,8 +118,11 @@ def logout(user, body) -> dict:
 # ---- each account's own tiny (control panel) ----
 
 def catalogue(_user, _body) -> dict:
+    from tiny import look as looks
     return {"features": tinys.FEATURES, "limits": tinys.LIMITS, "skills": tinys.SKILLS,
-            "body_types": tinys.BODY_TYPES}
+            "body_types": tinys.BODY_TYPES,
+            "look_options": {"hair_style": looks.HAIR_STYLES, "top_style": looks.TOP_STYLES,
+                             "bottom_style": looks.BOTTOM_STYLES, "build": looks.BUILDS}}
 
 
 def get_tiny(user, _body) -> dict:

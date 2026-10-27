@@ -1,4 +1,4 @@
-"""What tiny you looks like: simple settings the character is drawn from.
+"""What tiny you looks like: simple settings the 3D tiny is built from in Blender.
 
 Only these settings are saved. A photo used to fill them in is never stored.
 """
@@ -17,17 +17,15 @@ FACIAL_HAIR = ["none", "mustache", "beard"]
 EXTRAS = ["none", "earrings", "cap", "headphones"]
 TOP_STYLES = ["t-shirt", "long sleeves", "sweater", "tank top", "camisole", "turtleneck", "corset top",
               "tube top", "shirt", "jacket", "suit", "polo"]
+BUILDS = ["slim", "average", "curvy", "plus-size"]
 BOTTOM_STYLES = ["pants", "jeans", "shorts", "skirt", "mini skirt", "long skirt"]
 SKIN_TONES = ["#fbe0cf", "#f2c9a0", "#e0ac7e", "#c68a5e", "#a8693f", "#8d5524", "#6b3e1f", "#4a2a17"]
 HAIR_COLORS = ["#1c1714", "#3b2a1e", "#6a4a32", "#8e4a24", "#c79a5b", "#e7cf8f", "#9a9a9a", "#e8e8e8"]
 
-STYLES = ["realistic", "cartoon"]
-
 DEFAULT = {
-    "style": "realistic",
     "skin": "#f2c9a0", "hair_style": "short", "hair_color": "#2b2118",
     "facial_hair": "none", "glasses": False, "extra": "none",
-    "top_style": "t-shirt", "top_color": "#5b4bdb", "bottom_style": "pants", "bottom_color": "#1d1d1f",
+    "build": "average", "top_style": "t-shirt", "top_color": "#5b4bdb", "bottom_style": "pants", "bottom_color": "#1d1d1f",
 }
 
 
@@ -56,13 +54,14 @@ PHOTO_SCHEMA = {
         "facial_hair": {"type": "string", "enum": FACIAL_HAIR},
         "glasses": {"type": "boolean"},
         "extra": {"type": "string", "enum": EXTRAS},
+        "build": {"type": "string", "enum": BUILDS},
         "top_style": {"type": "string", "enum": TOP_STYLES},
         "top_color": HEX,
         "bottom_style": {"type": "string", "enum": BOTTOM_STYLES},
         "bottom_color": HEX,
     },
     "required": ["found_person", "face_box", "skin", "hair_style", "hair_color", "facial_hair",
-                 "glasses", "extra", "top_style", "top_color", "bottom_style", "bottom_color"],
+                 "glasses", "extra", "build", "top_style", "top_color", "bottom_style", "bottom_color"],
     "additionalProperties": False,
 }
 
@@ -72,7 +71,24 @@ class LookError(Exception):
 
 
 def look_from_photo(jpeg: bytes) -> dict:
-    """Ask Claude to turn a photo into avatar settings. Returns only the settings."""
+    """Photo -> look settings. Claude reads styles best; when it can't be reached (no credit,
+    offline) the photo is measured locally instead, so a tiny can always be built."""
+    try:
+        return _look_with_claude(jpeg)
+    except LookError as e:
+        if "face" in str(e) or "couldn't be used" in str(e):
+            raise  # a real answer about the photo, not an outage
+        claude_error = e
+    from . import photo_local
+    try:
+        return {**DEFAULT, "build": "average", "top_style": "t-shirt", **photo_local.look_from_photo(jpeg)}
+    except photo_local.NoFace as e:
+        raise LookError(str(e))
+    except Exception:
+        raise LookError(f"Couldn't read the photo: {claude_error}")
+
+
+def _look_with_claude(jpeg: bytes) -> dict:
     import anthropic
     if not os.environ.get("ANTHROPIC_API_KEY"):
         return _look_with_claude_code(jpeg)
@@ -101,7 +117,7 @@ def look_from_photo(jpeg: bytes) -> dict:
 
 PHOTO_PROMPT = ("This photo is of the user, who wants a mini avatar that looks like them. Pick the closest "
                 "settings for what is visible: skin tone (sample the face in good light, not shadow), "
-                "hairstyle, hair colour, facial hair, glasses, any earrings, cap or headphones, the kind of "
+                "hairstyle, hair colour, body build, facial hair, glasses, any earrings, cap or headphones, the kind of "
                 "top (sleeve length matters) and its main colour, and the kind of bottoms and their colour. "
                 "Describe appearance only.")
 

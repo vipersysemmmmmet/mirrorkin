@@ -3,6 +3,7 @@ python-dotenv
 PySide6-Essentials
 # Reading skin colour straight from a photo's pixels
 pillow>=12
+opencv-python-headless>=4.10,<5  # finds the face when Claude is unavailable
 # Her tools: browser control, the tool connector for Claude Code, Keychain access, wallet crypto
 playwright>=1.64
 mcp>=2.3,<3

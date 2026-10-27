@@ -63,9 +63,9 @@ SKILLS = [
 SKILL_IDS = {s["id"] for s in SKILLS}
 
 BODY_TYPES = ["feminine", "masculine"]
-DEFAULT_LOOK = {"style": "realistic", "body": "feminine", "skin": "#e0ac7e", "hair_style": "short",
+DEFAULT_LOOK = {"body": "feminine", "skin": "#e0ac7e", "hair_style": "short",
                 "hair_color": "#2b2118", "facial_hair": "none", "glasses": False, "extra": "none",
-                "top_style": "t-shirt", "top_color": "#5b4bdb", "bottom_style": "pants", "bottom_color": "#1d1d1f"}
+                "build": "average", "top_style": "t-shirt", "top_color": "#5b4bdb", "bottom_style": "pants", "bottom_color": "#1d1d1f"}
 
 _ready = threading.Lock()
 _made = False
@@ -157,6 +157,8 @@ def set_look(user, look: dict) -> dict:
             clean[key] = value
         elif key == "extra" and value in looks.EXTRAS:
             clean[key] = value
+        elif key == "build" and value in looks.BUILDS:
+            clean[key] = value
         elif key == "top_style" and value in looks.TOP_STYLES:
             clean[key] = value
         elif key == "bottom_style" and value in looks.BOTTOM_STYLES:
@@ -204,9 +206,7 @@ def _work() -> None:
             folder.mkdir(parents=True, exist_ok=True)
             look = t["look"]
             (folder / "look.json").write_text(json.dumps(look))
-            body = json.loads((ROOT / "avatar" / "body.json").read_text())
-            body["gender"] = 1.0 if look.get("body") == "masculine" else 0.0
-            (folder / "body.json").write_text(json.dumps(body))
+            (folder / "body.json").write_text(json.dumps(outfits.body_for(look)))
             (folder / "outfit.json").write_text(json.dumps(outfits.outfit_for(look)))
             _update(user, avatar_status="building")
             run = subprocess.run(
